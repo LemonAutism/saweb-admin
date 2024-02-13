@@ -3,6 +3,7 @@ package com.tmy.sys.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.tmy.common.utils.JwtUtil;
 import com.tmy.sys.entity.User;
 import com.tmy.sys.mapper.UserMapper;
 import com.tmy.sys.service.IUserService;
@@ -36,6 +37,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Override
     public Map<String, Object> login(User user) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper();
@@ -44,10 +48,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         User loginUser = this.getOne(wrapper);
         if(loginUser != null && passwordEncoder.matches(user.getPassword(),loginUser.getPassword())){
             Map<String, Object> data = new HashMap<>();
-            String key = "user:" + UUID.randomUUID();
-            data.put("token", key);    // 待优化，最终方案jwt
+            //String key = "user:" + UUID.randomUUID();
+            // 待优化，最终方案jwt
             loginUser.setPassword(null);
-            redisTemplate.opsForValue().set(key,loginUser,30, TimeUnit.MINUTES);
+
+            String Token = jwtUtil.createToken(loginUser);
+
+            //redisTemplate.opsForValue().set(Token,loginUser,30, TimeUnit.MINUTES);
+            data.put("token", Token);
             return data;
         }
         return null;
@@ -56,9 +64,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Map<String, Object> getUserInfo(String token) {
         //根据token获取用户信息
-        Object obj = redisTemplate.opsForValue().get(token);
-        if(obj!= null){
-            User loginUser =JSON.parseObject(JSON.toJSONString(obj),User.class);
+        //Object obj = redisTemplate.opsForValue().get(token);
+        User loginUser = null;
+        try {
+            loginUser =jwtUtil.parseToken(token, User.class);
+        } catch (Exception e) {
+           e.printStackTrace();
+        }
+        if(loginUser!= null){
+            //User loginUser =JSON.parseObject(JSON.toJSONString(obj),User.class);
             Map<String, Object> data = new HashMap<>();
             data.put("name",loginUser.getUsername());
             data.put("avatar",loginUser.getAvatar());
@@ -73,6 +87,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public void logout(String token) {
-        redisTemplate.delete(token);
+        //redisTemplate.delete(token);
     }
 }
