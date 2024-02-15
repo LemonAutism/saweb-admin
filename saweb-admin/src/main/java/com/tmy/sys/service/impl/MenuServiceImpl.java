@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -30,12 +31,41 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements IM
         return menuList;
     }
 
+    @Override
+    public List<Menu> getMenuListByUserId(Integer userId) {
+        // 一级菜单
+        List<Menu> menuList = this.getBaseMapper().getMenuListByUserId(userId, 0);
+        // 子菜单
+        setMenuChildrenByUserId(userId, menuList);
+        return menuList.stream()
+                .distinct()
+                // 如果Menu类重写了equals()和hashCode()方法，基于这两个方法去重
+                .collect(Collectors.toList());
+    }
+
+    private void setMenuChildrenByUserId(Integer userId, List<Menu> menuList) {
+        if (menuList != null) {
+            for (Menu menu : menuList) {
+                List<Menu> subMenuList = this.getBaseMapper().getMenuListByUserId(userId, menu.getMenuId()).stream()
+                        .distinct()
+                        // 如果Menu类重写了equals()和hashCode()方法，基于这两个方法去重
+                        .collect(Collectors.toList());;
+                menu.setChildren(subMenuList);
+                // 递归
+                setMenuChildrenByUserId(userId,subMenuList);
+            }
+        }
+    }
+
     private void setMenuChildren(List<Menu> menuList) {
         if(menuList != null) {
             for (Menu menu:menuList) {
                 LambdaQueryWrapper<Menu> subWrapper = new LambdaQueryWrapper();
                 subWrapper.eq(Menu::getParentId, menu.getMenuId());
-                List<Menu> subMenuList = this.list(subWrapper);
+                List<Menu> subMenuList = this.list(subWrapper).stream()
+                        .distinct()
+                        // 如果Menu类重写了equals()和hashCode()方法，基于这两个方法去重
+                        .collect(Collectors.toList());;
                 menu.setChildren(subMenuList);
                 // 递归
                 setMenuChildren(subMenuList);
