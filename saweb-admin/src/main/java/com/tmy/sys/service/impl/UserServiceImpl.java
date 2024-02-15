@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.tmy.common.utils.JwtUtil;
 import com.tmy.sys.entity.User;
+import com.tmy.sys.entity.UserRole;
 import com.tmy.sys.mapper.UserMapper;
+import com.tmy.sys.mapper.UserRoleMapper;
 import com.tmy.sys.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.val;
@@ -13,12 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -39,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Resource
+    private UserRoleMapper userRoleMapper;
 
     @Override
     public Map<String, Object> login(User user) {
@@ -88,5 +96,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public void logout(String token) {
         //redisTemplate.delete(token);
+    }
+
+    @Override
+    @Transactional
+    public void addUser(User user) {
+        this.baseMapper.insert(user);
+        List<Integer> roleIdList = user.getRoleIdList();
+        if(roleIdList != null){
+            for (Integer roleId : roleIdList) {
+                userRoleMapper.insert(new UserRole(null, user.getId(), roleId));
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public User getUserById(Integer id) {
+        User user = this.baseMapper.selectById(id);
+        LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRole::getUserId,id);
+        List<UserRole> userRoleList = userRoleMapper.selectList(wrapper);
+        List<Integer> roleIdList = userRoleList.stream().map(UserRole -> {
+            return UserRole.getRoleId();
+        }).collect(Collectors.toList());
+        user.setRoleIdList(roleIdList);
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(User user) {
+        this.baseMapper.updateById(user);
+        LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRole::getUserId,user.getId());
+        userRoleMapper.delete(wrapper);
+        List<Integer> roleIdList = user.getRoleIdList();
+        if(roleIdList != null){
+            for (Integer roleId : roleIdList) {
+                userRoleMapper.insert(new UserRole(null, user.getId(), roleId));
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Integer id) {
+        this.baseMapper.deleteById(id);
+        LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRole::getUserId,id);
+        userRoleMapper.delete(wrapper);
     }
 }
