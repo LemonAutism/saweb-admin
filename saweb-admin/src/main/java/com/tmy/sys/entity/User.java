@@ -45,5 +45,8 @@ public class User implements Serializable {
     private Integer deleted;
 
     @TableField(exist = false)
+    private Integer roleId;
+
+    @TableField(exist = false)
     private List<Integer> roleIdList;
 }

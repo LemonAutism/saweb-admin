@@ -53,6 +53,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Autowired
     private IMenuService menuService;
 
+    @Resource
+    private UserMapper userMapper;
+
     @Override
     public Map<String, Object> login(User user) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper();
@@ -156,5 +159,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserRole::getUserId,id);
         userRoleMapper.delete(wrapper);
+    }
+
+    @Override
+    public List<User> getUsersByRoleId(Integer roleId) {
+        System.out.println(userMapper.getUsersByRoleId(roleId).toString());
+        return userMapper.getUsersByRoleId(roleId);
+    }
+
+    @Override
+    public List<User> getAllUsersWithRoleIds() {
+        return userMapper.getAllUsersWithRoleIds();
     }
 }

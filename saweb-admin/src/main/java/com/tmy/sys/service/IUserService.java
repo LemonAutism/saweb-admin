@@ -3,6 +3,7 @@ package com.tmy.sys.service;
 import com.tmy.sys.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,4 +29,8 @@ public interface IUserService extends IService<User> {
     void updateUser(User user);
 
     void deleteUser(Integer id);
+
+    List<User> getUsersByRoleId(Integer roleId);
+
+    List<User> getAllUsersWithRoleIds();
 }

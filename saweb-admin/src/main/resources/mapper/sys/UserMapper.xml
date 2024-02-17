@@ -8,4 +8,19 @@
         WHERE a.`user_id` = #{userId}
           AND a.`role_id` = b.`role_id`
     </select>
+    <select id="getUsersByRoleId" parameterType="int" resultType="com.tmy.sys.entity.User">
+        SELECT u.*, ur.role_id
+        FROM x_user AS u
+                 JOIN x_user_role AS ur ON u.id = ur.user_id
+        WHERE ur.role_id = #{roleId}
+    </select>
+    <select id="getAllUsersWithRoleIds" resultType="com.tmy.sys.entity.User">
+        SELECT
+            u.*,
+            GROUP_CONCAT(r.role_id) as role_ids
+        FROM x_user AS u
+                 LEFT JOIN x_user_role AS ur ON u.id = ur.user_id
+                 LEFT JOIN x_role AS r ON ur.role_id = r.id
+        GROUP BY u.id
+    </select>
 </mapper>

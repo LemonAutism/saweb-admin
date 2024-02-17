@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -65,20 +66,41 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public Result<Map<String,Object>> getUsersList(@RequestParam(value = "username",required = false)String username
-                                                ,@RequestParam(value = "phone",required = false) String phone
-                                               ,@RequestParam(value = "pageNo") Long pageNo
-                                                ,@RequestParam(value = "pageSize")Long pageSize){
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StringUtils.hasLength(username),User::getUsername,username);
-        wrapper.eq(StringUtils.hasLength(phone),User::getPhone,phone);
-        wrapper.orderByDesc(User::getId);
-        Page<User>  page = new Page<>(pageNo,pageSize);
-        userService.page(page,wrapper);
+    public Result<Map<String, Object>> getUsersList(
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "phone", required = false) String phone,
+            @RequestParam(value = "roleId", required = false) Integer roleId,
+            @RequestParam(value = "pageNo") Long pageNo,
+            @RequestParam(value = "pageSize") Long pageSize) {
 
-        Map<String,Object> data = new HashMap<>();
-        data.put("total",page.getTotal());
-        data.put("rows",page.getRecords());
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+
+        // 添加用户名和电话的查询条件
+        if (StringUtils.hasLength(username)) {
+            wrapper.like(User::getUsername, username);
+        }
+        if (StringUtils.hasLength(phone)) {
+            wrapper.eq(User::getPhone, phone);
+        }
+
+        // 角色ID不为空时执行多表联查（通过UserMapper中的方法）
+        if (roleId != null) {
+            List<User> usersByRoleId = userService.getUsersByRoleId(roleId);
+            // 假设返回的是所有满足条件的User对象列表，这里可以根据业务需求处理这些结果
+            // 例如：将用户的id放入一个集合中，然后使用in查询
+            List<Integer> userIds = usersByRoleId.stream().map(User::getId).collect(Collectors.toList());
+            wrapper.in(User::getId, userIds);
+        }
+
+        wrapper.orderByDesc(User::getId);
+
+        Page<User> page = new Page<>(pageNo, pageSize);
+
+        userService.page(page, wrapper);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("total", page.getTotal());
+        data.put("rows", page.getRecords());
 
         return Result.success(data);
     }
