@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tmy.common.vo.Result;
 import com.tmy.sys.entity.User;
+import com.tmy.sys.entity.UserRole;
 import io.netty.util.internal.StringUtil;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,7 @@ public class UserController {
             @RequestParam(value = "roleId", required = false) Integer roleId,
             @RequestParam(value = "pageNo") Long pageNo,
             @RequestParam(value = "pageSize") Long pageSize) {
+
 
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
 
