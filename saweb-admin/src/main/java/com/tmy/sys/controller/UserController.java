@@ -1,5 +1,8 @@
 package com.tmy.sys.controller;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.poi.excel.ExcelReader;
+import cn.hutool.poi.excel.ExcelUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tmy.common.vo.Result;
@@ -12,7 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,4 +138,24 @@ public class UserController {
         userService.deleteUser(id);
         return Result.success("删除用户成功");
     }
+
+    @PostMapping("/usersImport")
+    public Result<?> usersImport(MultipartFile file) throws Exception {
+        InputStream inputStream = file.getInputStream();
+        ExcelReader reader = ExcelUtil.getReader(inputStream);
+        List<List<Object>> list = reader.read(1);
+        List<User> users = CollUtil.newArrayList();
+        for (List<Object> row : list) {
+            User user = new User();
+            user.setId(Integer.parseInt(row.get(0).toString()));
+            user.setUsername(row.get(1).toString());
+            user.setPassword(passwordEncoder.encode(row.get(2).toString()));
+            user.setEmail(row.get(3).toString());
+            user.setPhone(row.get(4).toString());
+            users.add(user);
+        }
+        //userService.addUsers(users);
+        return Result.success(users,"导入用户成功");
+    }
+
 }

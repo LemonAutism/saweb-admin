@@ -171,4 +171,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public List<User> getAllUsersWithRoleIds() {
         return userMapper.getAllUsersWithRoleIds();
     }
+
+    @Override
+    public void addUsers(List<User> users) {
+        for (User user : users) {
+            this.baseMapper.insert(user);
+            userRoleMapper.insert(new UserRole(null, user.getId(), 1));
+        }
+    }
 }

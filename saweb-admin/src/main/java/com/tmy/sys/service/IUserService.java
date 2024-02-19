@@ -33,4 +33,6 @@ public interface IUserService extends IService<User> {
     List<User> getUsersByRoleId(Integer roleId);
 
     List<User> getAllUsersWithRoleIds();
+
+    void addUsers(List<User> users);
 }

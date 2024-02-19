@@ -23,6 +23,7 @@ public class MyWebConfig implements WebMvcConfigurer {
                         "/error",
                         "/swagger-ui/**",
                         "/swagger-resources/**",
+                        "/user/usersImport",
                         "/v3/**");
     }
 }
