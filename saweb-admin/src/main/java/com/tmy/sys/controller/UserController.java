@@ -152,9 +152,10 @@ public class UserController {
             user.setPassword(passwordEncoder.encode(row.get(2).toString()));
             user.setEmail(row.get(3).toString());
             user.setPhone(row.get(4).toString());
+            user.setStatus(1);
             users.add(user);
         }
-        //userService.addUsers(users);
+        userService.addUsers(users);
         return Result.success(users,"导入用户成功");
     }
 

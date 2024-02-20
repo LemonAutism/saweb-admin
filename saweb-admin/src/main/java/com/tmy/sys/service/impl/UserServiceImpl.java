@@ -176,7 +176,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public void addUsers(List<User> users) {
         for (User user : users) {
             this.baseMapper.insert(user);
-            userRoleMapper.insert(new UserRole(null, user.getId(), 1));
+            userRoleMapper.insert(new UserRole(null, user.getId(), 3));
         }
+        System.out.println("执行一次");
     }
 }
