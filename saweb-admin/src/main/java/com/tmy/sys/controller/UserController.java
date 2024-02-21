@@ -100,7 +100,7 @@ public class UserController {
             wrapper.in(User::getId, userIds);
         }
 
-        wrapper.orderByDesc(User::getId);
+        wrapper.orderByAsc(User::getId);
 
         Page<User> page = new Page<>(pageNo, pageSize);
 
