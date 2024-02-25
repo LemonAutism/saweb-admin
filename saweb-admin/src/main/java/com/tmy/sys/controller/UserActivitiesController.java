@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tmy.common.vo.Result;
 import com.tmy.sys.entity.User;
 import com.tmy.sys.entity.UserActivities;
+import com.tmy.sys.mapper.ActivitiesMapper;
 import com.tmy.sys.mapper.UserActivitiesMapper;
 import com.tmy.sys.mapper.UserMapper;
 import com.tmy.sys.service.IUserActivitiesService;
 import com.tmy.sys.service.IUserService;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
@@ -18,6 +20,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,6 +44,9 @@ public class UserActivitiesController {
     @Resource
     private UserActivitiesMapper userActivitiesMapper;
 
+    @Resource
+    private ActivitiesMapper activitiesMapper;
+
     @Autowired
     private IUserActivitiesService userActivitiesService;
 
@@ -48,7 +54,7 @@ public class UserActivitiesController {
     public Result<List<User>> getUserActivitiesList(@PathVariable("activityId") Integer activityId) {
         // 通过活动ID获取所有参与该活动的用户ID
         List<Integer> userIds = userActivitiesMapper.selectList(
-                new QueryWrapper<UserActivities>().eq("activity_id", activityId)
+                new QueryWrapper<UserActivities>().eq("activity_id", activityId).eq("participation_status",1)
         ).stream().map(UserActivities::getUserid).collect(Collectors.toList());
         if (userIds.isEmpty()) {
             return Result.fail("该活动暂无报名人员");
@@ -74,10 +80,14 @@ public class UserActivitiesController {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.in("id", userIds);
         List<User> users = userMapper.selectList(wrapper);
+        System.out.println("打印数据");
+        System.out.println(users);
+
 
         try (ServletOutputStream out = response.getOutputStream()) {
             // 在内存操作，写出到浏览器
             ExcelWriter writer = ExcelUtil.getWriter(true);
+
             // 自定义标题别名
             writer.addHeaderAlias("id", "学号");
             writer.addHeaderAlias("username", "用户名");
@@ -87,7 +97,7 @@ public class UserActivitiesController {
 
             // 设置浏览器响应的格式
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
-            String fileName = URLEncoder.encode("用户信息", "UTF-8");
+            String fileName = URLEncoder.encode("报名表", "UTF-8");
             response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
 
             // 写入并刷新输出流
@@ -99,4 +109,32 @@ public class UserActivitiesController {
         }
     }
 
+    @GetMapping("/count/{activityId}")
+    public Result<Integer> countUserActivities(@PathVariable("activityId") Integer activityId) {
+        Integer count = Math.toIntExact(userActivitiesMapper.selectCount(
+                new QueryWrapper<UserActivities>().eq("activity_id", activityId)
+        ));
+        return Result.success(count);
+    }
+
+    @GetMapping("/join")
+    public Result<String> join(@RequestParam(value = "id") Integer id,
+                               @RequestParam(value = "activityId") Integer activityId) {
+
+
+        if (userActivitiesMapper.selectCount(
+                new QueryWrapper<UserActivities>().eq("activity_id", activityId).eq("userid", id)
+        ) > 0) {
+            return Result.fail("您已报名，请勿重复报名");
+        }
+        //获取当前时间戳
+        long timestamp = Instant.now().toEpochMilli();
+        UserActivities userActivities = new UserActivities();
+        userActivities.setUserid(id);
+        userActivities.setActivityId(activityId);
+        userActivities.setParticipationStatus(1);
+        userActivities.setTime(String.valueOf(timestamp));
+        userActivitiesService.save(userActivities);
+        return Result.success("报名成功");
+    }
 }
