@@ -4,6 +4,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tmy.common.vo.Result;
+import com.tmy.sys.entity.Activities;
 import com.tmy.sys.entity.User;
 import com.tmy.sys.entity.UserActivities;
 import com.tmy.sys.mapper.ActivitiesMapper;
@@ -120,13 +121,17 @@ public class UserActivitiesController {
     @GetMapping("/join")
     public Result<String> join(@RequestParam(value = "id") Integer id,
                                @RequestParam(value = "activityId") Integer activityId) {
-
-
+        int count = Integer.parseInt(activitiesMapper.selectOne(new QueryWrapper<Activities>().eq("activity_id", activityId)).getCount());
+        int joinCount = Math.toIntExact(userActivitiesMapper.selectCount(new QueryWrapper<UserActivities>().eq("activity_id", activityId)));
         if (userActivitiesMapper.selectCount(
                 new QueryWrapper<UserActivities>().eq("activity_id", activityId).eq("userid", id)
         ) > 0) {
             return Result.fail("您已报名，请勿重复报名");
         }
+        if (count <= joinCount) {
+            return Result.fail("报名人数已满");
+        }
+
         //获取当前时间戳
         long timestamp = Instant.now().toEpochMilli();
         UserActivities userActivities = new UserActivities();
@@ -137,4 +142,17 @@ public class UserActivitiesController {
         userActivitiesService.save(userActivities);
         return Result.success("报名成功");
     }
+
+    @DeleteMapping("/{id}")
+    public Result<?> deleteUserActivities(@PathVariable("id") Integer id,
+                                          @RequestParam(value = "activityId") Integer activityId) {
+        userActivitiesMapper.delete(new QueryWrapper<UserActivities>().eq("activity_id", activityId).eq("userid", id));
+        return Result.success("取消报名成功");
+    }
+
+//    @GetMapping("/reservation")
+//    public Result<String> reservation(@RequestParam(value = "id") Integer id,
+//                                      @RequestParam(value = "activityId") Integer activityId) {
+//
+//    }
 }

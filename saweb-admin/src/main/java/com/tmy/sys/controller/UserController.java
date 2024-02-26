@@ -159,4 +159,18 @@ public class UserController {
         return Result.success(users,"导入用户成功");
     }
 
+    @PutMapping("/reset")
+    public Result<?> resetPassword(@RequestBody User user){
+        user.setPassword("123456");
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userService.updateUser(user);
+        return Result.success("重置密码成功");
+    }
+
+    @PutMapping("/setPassword")
+    public Result<?> setPassword(@RequestBody User user){
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userService.updateUser(user);
+        return Result.success("修改密码成功");
+    }
 }
