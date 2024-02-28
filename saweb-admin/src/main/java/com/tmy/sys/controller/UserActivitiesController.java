@@ -150,6 +150,28 @@ public class UserActivitiesController {
         return Result.success("取消报名成功");
     }
 
+    @GetMapping("/isJoin")
+    public Result isJoin(@RequestParam(value = "id") Integer id,
+                               @RequestParam(value = "activityId") Integer activityId) {
+        boolean isJoin = userActivitiesMapper.selectCount(
+                new QueryWrapper<UserActivities>().eq("activity_id", activityId).eq("userid", id)
+        ) > 0;
+        return Result.success(isJoin);
+    }
+
+    @GetMapping("/userJoinAllAct")
+    public Result userJoinAllAct(@RequestParam(value = "id") Integer id) {
+        List<UserActivities> userActivities = userActivitiesMapper.selectList(
+                new QueryWrapper<UserActivities>().eq("userid", id).eq("participation_status",1)
+        );
+        List<Activities> activities = userActivities.stream().map(userActivities1 -> {
+            Activities activity = activitiesMapper.selectById(userActivities1.getActivityId());
+            return activity;
+        }).collect(Collectors.toList());
+        return Result.success(activities);
+    }
+
+
 //    @GetMapping("/reservation")
 //    public Result<String> reservation(@RequestParam(value = "id") Integer id,
 //                                      @RequestParam(value = "activityId") Integer activityId) {

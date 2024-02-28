@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>活动预约通知</title>
+    <meta charset="utf-8">
+</head>
+
+<body>
+<!-- 头部 -->
+<div style="padding: 10px; background-color: #393D49;">
+    <h2 style="color: #FFFFFF; margin: 0px;">校园活动平台</h2>
+</div>
+<!-- 内容 -->
+<div style="padding-top: 10px; padding-bottom: 10px;">
+    <div style="background-color: snow; padding: 20px;">
+        <div>
+            <h3>尊敬的用户：您好！</h3>
+            <p>说明：您预约的活动标签可能有相关新活动发布，请注意登录查看。</p>
+            <div>
+                <h4>新活动的标签为：</h4>
+                <div style="background-color: #EBEEF5; padding: 10px;">
+                    <h3 th:text="${tagName}"></h3>
+                </div>
+                <h4>请勿回复此邮件。</h4>
+            </div>
+            <p style="margin-top: 15px;">发件人：校园活动平台</p>
+        </div>
+    </div>
+</div>
+<!-- 页底 -->
+<div style="padding: 10px; text-align: center; background-color: #2F4056;">
+    <p style="margin: 0px; color: #FFFFFF;">Copyright © 2024  All Rights Reserved.</p>
+</div>
+
+</body>
+
+</html>

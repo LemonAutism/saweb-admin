@@ -10,6 +10,20 @@ spring:
     port: 6379
     host: localhost
     password: 123456
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: a15298219120@163.com
+    password: DPFPAAJBRPAIYIGL
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+  thymeleaf:
+    cache: false
 
 logging:
   level:

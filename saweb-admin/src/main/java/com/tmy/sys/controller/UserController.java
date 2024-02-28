@@ -50,10 +50,14 @@ public class UserController {
     @PostMapping("/login")
     public Result<Map<String,Object>> login(@RequestBody User user){
         Map<String,Object> data = userService.login(user);
+        int loginUserStatus = (int) data.get("status");
+        if(loginUserStatus == 0){
+            return Result.fail(20001,"用户已被禁用，请联系管理员");
+        }
         if(data != null){
             return Result.success(data);
         }
-        return Result.fail(20002,"用户名或密码错误");
+        return Result.fail(20002,"用户名或密码错误||忘记密码请联系管理员重置密码");
     }
 
     @GetMapping("/info")
@@ -160,7 +164,8 @@ public class UserController {
     }
 
     @PutMapping("/reset")
-    public Result<?> resetPassword(@RequestBody User user){
+    public Result<?> resetPassword(@RequestParam(value = "id") Integer id){
+        User user = userService.getUserById(id);
         user.setPassword("123456");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userService.updateUser(user);
@@ -168,9 +173,37 @@ public class UserController {
     }
 
     @PutMapping("/setPassword")
-    public Result<?> setPassword(@RequestBody User user){
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    public Result<?> setPassword(@RequestParam(value = "id") Integer id,
+                                 @RequestParam(value = "password") String password){
+        User user = userService.getUserById(id);
+        user.setPassword(passwordEncoder.encode(password));
         userService.updateUser(user);
         return Result.success("修改密码成功");
+    }
+
+    @PutMapping("/setPhone")
+    public Result<?> setPhone(@RequestParam(value = "id") Integer id,
+                              @RequestParam(value = "phone") String phone){
+        User user = userService.getUserById(id);
+        user.setPhone(phone);
+        userService.updateUser(user);
+        return Result.success("修改电话成功");
+    }
+
+    @PutMapping("/setEmail")
+    public Result<?> setEmail(@RequestParam(value = "id") Integer id,
+                              @RequestParam(value = "email") String email){
+        User user = userService.getUserById(id);
+        user.setEmail(email);
+        userService.updateUser(user);
+        return Result.success("修改邮箱成功");
+    }
+
+    @GetMapping("/isPassword")
+    public Result<?> isPassword(@RequestParam(value = "id") Integer id,
+                                @RequestParam(value = "password") String password){
+        User user = userService.getUserById(id);
+        boolean isPassword = passwordEncoder.matches(password,user.getPassword());
+        return Result.success(isPassword);
     }
 }

@@ -72,6 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
             //redisTemplate.opsForValue().set(Token,loginUser,30, TimeUnit.MINUTES);
             data.put("token", Token);
+            data.put("status", loginUser.getStatus());
             return data;
         }
         return null;
