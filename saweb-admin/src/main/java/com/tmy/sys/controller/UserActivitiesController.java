@@ -93,6 +93,8 @@ public class UserActivitiesController {
             writer.addHeaderAlias("id", "学号");
             writer.addHeaderAlias("username", "用户名");
 
+            System.out.println(writer);
+
             // 一次性写出list内的对象到excel，使用默认样式，强制输出标题
             writer.write(users, true);
 
