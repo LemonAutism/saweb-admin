@@ -50,6 +50,9 @@ public class UserController {
     @PostMapping("/login")
     public Result<Map<String,Object>> login(@RequestBody User user){
         Map<String,Object> data = userService.login(user);
+        if(data == null){
+            return Result.fail(20002,"用户名或密码错误||忘记密码请联系管理员重置密码");
+        }
         int loginUserStatus = (int) data.get("status");
         if(loginUserStatus == 0){
             return Result.fail(20001,"用户已被禁用，请联系管理员");
@@ -79,7 +82,7 @@ public class UserController {
     @GetMapping("/list")
     public Result<Map<String, Object>> getUsersList(
             @RequestParam(value = "username", required = false) String username,
-            @RequestParam(value = "phone", required = false) String phone,
+            @RequestParam(value = "id", required = false) Integer id,
             @RequestParam(value = "roleId", required = false) Integer roleId,
             @RequestParam(value = "pageNo") Long pageNo,
             @RequestParam(value = "pageSize") Long pageSize) {
@@ -87,12 +90,12 @@ public class UserController {
 
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
 
-        // 添加用户名和电话的查询条件
+        // 添加用户名和id的查询条件
         if (StringUtils.hasLength(username)) {
             wrapper.like(User::getUsername, username);
         }
-        if (StringUtils.hasLength(phone)) {
-            wrapper.eq(User::getPhone, phone);
+        if (id != null) {
+            wrapper.eq(User::getId, id);
         }
 
         // 角色ID不为空时执行多表联查（通过UserMapper中的方法）
