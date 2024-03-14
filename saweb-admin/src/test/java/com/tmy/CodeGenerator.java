@@ -16,7 +16,7 @@ public class CodeGenerator {
         String basePackage = "com.tmy";
         String moduleName = "sys";
         String mapperLocation = "D:\\web\\vue-admin\\saweb-admin\\src\\main\\resources\\mapper\\" + moduleName;
-        String tableName = "x_user,x_menu,x_role,x_role_menu,x_user_role,x_activities,x_tags,x_user_activities,x_apt,x_bulletin";
+        String tableName = "x_user,x_menu,x_role,x_role_menu,x_user_role,x_activities,x_tags,x_user_activities,x_apt,x_bulletin,x_feedback";
         String tablePrefix = "x_";
         FastAutoGenerator.create(url, username, password)
                 .globalConfig(builder -> {
